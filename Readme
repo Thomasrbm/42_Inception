@@ -14,10 +14,17 @@ INCEPTION :
 
 =================================================================
 
+0/ installer une vm + docker
+
+
+
 
 
 1/ docker hub
 
+-----------------------------------------------------------
+
+2/ NGINX
 
 - Ngninx le post ne donne pas de dockerfile modele.
   	=> passer par le site 
@@ -70,9 +77,74 @@ openssl req -x509 -nodes -days 365 \
 dans le terminal
 
 
+
+
 => http://localhost:8888  affichage la page acceuil si marche
 
 
+
+
+
+sudo docker build --no-cache -t mynginx -f Dockerfile.ngninx . 
+sudo docker images
+sudo docker run  -p 8888:80 ID
+
+
+
+-----------------------------------------------------------
+
+
+3/ Wordpress
+
+
+
+CMS = systeme de mangemet de contenu (pour faire des sites)  40 % des sites
+
+
+le docker image offi doit etre co avec un database a part
+
+
+choisir les image php fpm propo sur dockerhub
+c est quoi php fpm par rapport au autre wordpress sans ?
+
+
+wordpress de base latest inclut apache (serv web proxy)
+gere tout tout seul
+
+celui la non
+
+mais il a php-fpm FastCGI Process Manager
+besoin de recevoir les connexcion depuis un proxe (ngninx)
+
+
+
+
+Php c est du code back qui cree du html depuis le back.
+
+tu dis 
+<?php
+$nom = "Alice";
+echo "<h1>Bonjour $nom !</h1>";
+?>
+
+si le nom change dans le back ca actu le front
+
+
+Html seul fixe.
+Php back mais modifie le front
+JS front mais appel le back pour modif le front
+
+
+php = facebook, wikipedia, wordpress
+
+vient d un mec qui l utilisait pour son personnal home page = php
+
+
+puis rename Hypertext Preprocessor
+
+
+
+diff avec js : https://kinsta.com/fr/blog/php-vs-javascript/
 
 
 
