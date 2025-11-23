@@ -63,8 +63,33 @@ config de base donne : server {
 pour le TLS : https://nginx.org/en/docs/http/configuring_https_servers.html
 
 
+TLS C EST  : transport layer securitys
+
+
+
+
+
+1/ Certificat de securite par autorite (donne nom domaine, signature CA, cle publique) => site serieux
+2/ le serveur a eu un certif en envoyer un CSR au CA (echange de clef etc)
+3/ le client a son certif de base grace au browser => verifie CA du site
+
+4/ echange protocole ECC , chacun genere clef prive (nombre 256bit) et place point sur courbe ECC (clef pub)
+	l echange cree une clef partagee => connexion securisee
+
+5/ cette clef est used avec chacha ou AES pour chiffrer le dialogue
+
+
+
+
+
 
 faire son certif auto signer : 
+
+faux nom domaine
+fausse clef pub, 
+fausse meta donne date etc
+faux certif CA
+faux ip
 
 mkdir certs
 openssl req -x509 -nodes -days 365 \
@@ -79,7 +104,7 @@ dans le terminal
 
 
 
-=> http://localhost:8888  affichage la page acceuil si marche
+
 
 
 
@@ -88,6 +113,11 @@ dans le terminal
 sudo docker build --no-cache -t mynginx -f Dockerfile.ngninx . 
 sudo docker images
 sudo docker run  -p 8888:80 ID
+
+
+
+=> http://localhost:8888  affichage la page acceuil si marche
+
 
 
 
@@ -132,7 +162,7 @@ si le nom change dans le back ca actu le front
 
 Html seul fixe.
 Php back mais modifie le front
-JS front mais appel le back pour modif le front
+JS front mais appel le back pour modif le front (modifie le DOM)
 
 
 php = facebook, wikipedia, wordpress
@@ -145,6 +175,9 @@ puis rename Hypertext Preprocessor
 
 
 diff avec js : https://kinsta.com/fr/blog/php-vs-javascript/
+
+
+
 
 
 
