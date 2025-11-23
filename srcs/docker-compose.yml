@@ -1,0 +1,91 @@
+services:
+
+  mariadb:
+    image: mariadb
+    pull_policy: never
+    build:
+      context: requirements/mariadb
+    container_name: mariadb
+    restart: always
+    env_file:
+      - .env
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD_FILE: ${MYSQL_PASSWORD_FILE}
+      MYSQL_ROOT_PASSWORD_FILE: ${MYSQL_ROOT_PASSWORD_FILE}
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    secrets:
+      - db_password
+      - db_root_password
+    networks:
+      - inception
+
+  wordpress:
+    image: wordpress
+    pull_policy: never
+    build:
+      context: requirements/wordpress
+    container_name: wordpress
+    restart: always
+    env_file:
+      - .env
+    environment:
+      WORDPRESS_DB_HOST: mariadb:3306
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
+      WORDPRESS_DB_USER: ${MYSQL_USER}
+      WORDPRESS_DB_PASSWORD_FILE: ${MYSQL_PASSWORD_FILE}
+      WP_ADMIN_USER: ${WP_ADMIN_USER}
+      WP_ADMIN_PASSWORD_FILE: ${WP_ADMIN_PASSWORD_FILE}
+      WP_ADMIN_EMAIL: ${WP_ADMIN_EMAIL}
+    volumes:
+      - wordpress-data:/var/www/html
+    depends_on:
+      - mariadb
+    secrets:
+      - db_password
+      - credentials
+    networks:
+      - inception
+
+  nginx:
+    image: nginx
+    pull_policy: never
+    build:
+      context: requirements/nginx
+    container_name: nginx
+    restart: always
+    depends_on:
+      - wordpress
+    ports:
+      - "443:443"
+    volumes:
+      - wordpress-data:/var/www/html
+    networks:
+      - inception
+
+volumes:
+  mariadb-data:
+    driver_opts:
+      type: none
+      device: /home/throbert/data/mariadb
+      o: bind
+
+  wordpress-data:
+    driver_opts:
+      type: none
+      device: /home/throbert/data/wordpress
+      o: bind
+
+secrets:
+  db_password:
+    file: ../secrets/db_password.txt
+  db_root_password:
+    file: ../secrets/db_root_password.txt
+  credentials:
+    file: ../secrets/credentials.txt
+
+networks:
+  inception:
+    driver: bridge
