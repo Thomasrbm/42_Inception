@@ -1,0 +1,22 @@
+# ---- Secrets / Credentials ----
+secrets/
+*.env
+.env*
+*.key
+*.crt
+*.pem
+*.csr
+
+# ---- Logs / Temp files ----
+*.log
+*.tmp
+
+# ---- Docker volumes ----
+**/data/
+volumes/
+docker-volumes/
+
+# ---- Certificates produced by scripts ----
+srcs/**/tools/*.key
+srcs/**/tools/*.crt
+srcs/**/tools/*.pem

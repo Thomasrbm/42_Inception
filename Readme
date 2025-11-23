@@ -3,7 +3,12 @@ INCEPTION :
 
 
 
+Docker en 1 phrase : 
 
+
+virtualise une partie du pc mais partage le kernel contrairement 
+a vm qui refait tout l os. = plus leger.
+parfait pour deployer une app dans un envi isole et envoyer l app a d autre que ca marche sur toute machine. et dl les dependance facilement. 
 
 
 

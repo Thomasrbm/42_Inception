@@ -32,7 +32,7 @@ services:
     env_file:
       - .env
     environment:
-      WORDPRESS_DB_HOST: mariadb:3306
+      WORDPRESS_DB_HOST: mariadb
       WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
       WORDPRESS_DB_USER: ${MYSQL_USER}
       WORDPRESS_DB_PASSWORD_FILE: ${MYSQL_PASSWORD_FILE}
@@ -46,6 +46,7 @@ services:
     secrets:
       - db_password
       - credentials
+      - second_password
     networks:
       - inception
 
@@ -85,7 +86,11 @@ secrets:
     file: ../secrets/db_root_password.txt
   credentials:
     file: ../secrets/credentials.txt
+  second_password:
+    file: ../secrets/second_password.txt
+
 
 networks:
   inception:
     driver: bridge
+
