@@ -5,9 +5,15 @@ RUN apk update && apk add --no-cache \
     php81-curl php81-dom php81-zip php81-gd php81-mbstring \
     php81-session php81-opcache curl tar
 
-RUN mkdir -p /www && \
+RUN mkdir -p /var/www/html && \
     curl -o /tmp/wordpress.tar.gz https://wordpress.org/latest.tar.gz && \
-    tar -xzf /tmp/wordpress.tar.gz -C /www --strip-components=1
+    tar -xzf /tmp/wordpress.tar.gz -C /var/www/html --strip-components=1 && \
+    rm /tmp/wordpress.tar.gz
+
+RUN chown -R nobody:nobody /var/www/html
+
+# 🔥 FORCER FPM À ÉCOUTER SUR 0.0.0.0 🔥
+RUN sed -i 's|listen = 127\.0\.0\.1:9000|listen = 9000|' /etc/php81/php-fpm.d/www.conf
 
 COPY tools/wp-setup.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/wp-setup.sh
