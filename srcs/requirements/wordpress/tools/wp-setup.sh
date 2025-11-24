@@ -30,6 +30,10 @@ if [ ! -f "$WP_PATH/wp-config.php" ]; then
         --allow-root
 fi
 
+# 👉 Toujours s'assurer que les constantes Redis sont présentes / à jour
+wp config set WP_REDIS_HOST 'redis' --type=constant --path="$WP_PATH" --allow-root
+wp config set WP_REDIS_PORT '6379' --type=constant --path="$WP_PATH" --allow-root
+
 # Install WordPress if not installed
 if ! wp core is-installed --path="$WP_PATH" --allow-root; then
     wp core install \
@@ -53,5 +57,7 @@ if ! wp user get "$WP_SECOND_USER" --allow-root --path="$WP_PATH" >/dev/null 2>&
         --allow-root
 fi
 
+# Activer l'object cache si pas déjà fait (ne plante pas si Redis down)
+wp redis enable --path="$WP_PATH" --allow-root || true
 
 exec php-fpm81 -F

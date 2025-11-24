@@ -185,6 +185,33 @@ diff avec js : https://kinsta.com/fr/blog/php-vs-javascript/
 
 
 
+=================================================================
+
+			    BONUS	
+
+=================================================================
+
+
+
+---------------------------------------------------------------
+	
+	Setup Redis
+	
+	
+Sert a gerer le cache ( les truc stocker en memoire pour pas a avoir recharger de 0 la page)
+
+
+de base Wp a du cache mais pas persistant
+
+redis entre les pages les objets communs sont aussi gardes
+donc page 1 40 SQL page 2  4 SQL car reste partage. 
+
+
+au retour aussi ca garde le cache
+
+pas de diff entre le user, cache du server
+
+
 
 
 =================================================================

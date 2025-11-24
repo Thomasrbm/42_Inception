@@ -1,3 +1,6 @@
+
+version: "3.9"
+
 services:
 
   mariadb:
@@ -39,10 +42,12 @@ services:
       WP_ADMIN_USER: ${WP_ADMIN_USER}
       WP_ADMIN_PASSWORD_FILE: ${WP_ADMIN_PASSWORD_FILE}
       WP_ADMIN_EMAIL: ${WP_ADMIN_EMAIL}
+      WP_REDIS_HOST: redis
     volumes:
       - wordpress-data:/var/www/html
     depends_on:
       - mariadb
+      - redis
     secrets:
       - db_password
       - credentials
@@ -66,6 +71,83 @@ services:
     networks:
       - inception
 
+
+
+  redis:
+    image: redis
+    pull_policy: never
+    build:
+      context: requirements/bonus/redis
+    container_name: redis
+    restart: always
+    # Pas besoin de port 6379 exposé en dehors, réseau interne suffit
+    networks:
+      - inception
+
+  ftp:
+    image: ftp
+    pull_policy: never
+    build:
+      context: requirements/bonus/ftp
+    container_name: ftp
+    restart: always
+    env_file:
+      - .env
+    environment:
+      FTP_USER: ${FTP_USER}
+      # le fichier fourni automatiquement par Docker secrets :
+      FTP_PASSWORD_FILE: /run/secrets/ftp_password
+    volumes:
+      - wordpress-data:/var/www/html   # même volume que wordpress
+    ports:
+      - "21:21"
+      - "21000-21010:21000-21010"
+    depends_on:
+      - wordpress
+    secrets:
+      - ftp_password          # 🔥 tu ajoutes ça
+    networks:
+      - inception
+
+
+  adminer:
+    image: adminer
+    pull_policy: never
+    build:
+      context: requirements/bonus/adminer
+    container_name: adminer
+    restart: always
+    depends_on:
+      - mariadb
+    ports:
+      - "8080:8080"     # Adminer dispo sur http://localhost:8080
+    networks:
+      - inception
+
+  mail:
+    image: mail
+    pull_policy: never
+    build:
+      context: requirements/bonus/mail
+    container_name: mail
+    restart: always
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # interface web
+    networks:
+      - inception
+
+
+  static:
+    build: requirements/bonus/static
+    container_name: static
+    ports:
+      - "3000:80"
+    networks:
+      - inception
+
+
+
 volumes:
   mariadb-data:
     driver_opts:
@@ -88,6 +170,8 @@ secrets:
     file: ../secrets/credentials.txt
   second_password:
     file: ../secrets/second_password.txt
+  ftp_password:
+    file: ../secrets/ftp_password.txt
 
 
 networks:

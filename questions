@@ -77,7 +77,7 @@ les deux user :
 
 
 
-
+	docker exec -it mariadb sh
 	mariadb -u root -p"$(cat /run/secrets/db_root_password)"
 	USE wordpress;
 	SELECT ID, user_login, user_email FROM wp_users;
@@ -122,4 +122,8 @@ Docker secrets to store :
 les ports : 
 
 
-	443 ou rien OU throbert.42.fr
+	443 ou rien OU throbert.42.fr : site wp
+	8080 adminer
+	8025 mail
+
+	ftp via clien ftp
