@@ -1,0 +1,129 @@
+
+
+
+
+
+peut on acceder a la page ngninx welcome ? : 
+
+	non on doit avoir acces au site
+	
+	par https 443 domain et localhost rien d autre
+
+
+docker network :
+
+	network: host force un conteneur à utiliser le réseau de la machine hôte, sans isolation.
+	
+	--link : ??? vieux truc deprecie askip
+	
+	
+	networks:
+         inception:
+    		driver: bridge
+
+	
+	cree un sous reseau /16 par ex, un DNS interne et une plage d adressage auto
+	=> chaque service du network recoit une ip, un hostname a son container name, un register DNS
+
+
+	docker network inspect srcs_inception = les ip + la plage 
+	docker exec -it wordpress cat /etc/resolv.conf : edns0 = sans param mais dns
+	
+	brigde : routeur virtuel
+
+
+
+
+
+
+comment test le retry auto :
+
+
+
+
+
+
+
+
+tail -f :
+
+	les commandes loop infini font tourner docker meme sans vrai service = docker zombie
+
+
+
+
+Volumes :
+
+	bind mount pas interdit + doit etre stocker a cet endroit du pc
+
+	voir le docker composer /home/throbert
+
+
+
+
+les deux user : 
+
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
+      WORDPRESS_DB_USER: ${MYSQL_USER}
+      WORDPRESS_DB_PASSWORD_FILE: ${MYSQL_PASSWORD_FILE}
+      WP_ADMIN_USER: ${WP_ADMIN_USER}
+      WP_ADMIN_PASSWORD_FILE: ${WP_ADMIN_PASSWORD_FILE}
+      WP_ADMIN_EMAIL: ${WP_ADMIN_EMAIL}
+      
+      
+      
+      docker exec -it wordpress sh
+      wp user list --allow-root --path=/var/www/html
+
+
+
+	docker exec -it mariadb sh
+	mariadb -u root -p"$(cat /run/secrets/db_root_password)"
+	USE wordpress;
+	SELECT ID, user_login, user_email FROM wp_users;
+
+
+
+
+
+le PID 1 : 
+
+	premier processus lancer, dans docker c est le entrypoint/Cmd
+
+	quand docker stop ca envoit sigterm au PID 1
+	wp-setup.sh = PID 1
+
+	donc ca va envoyer a bash pas au service
+
+	=>service continue a tourner = coupure brutale
+
+
+	faire exec en fin de .sh  le exec devient le pid 1
+
+	donc le service qui sera coupe sera le bon
+	
+	
+	
+Docker secrets to store : 
+
+
+	secrets : 
+	
+		cree fichier  /run/secrets/<secret_name>
+	- pas visible dans l image
+	- pas dans l env
+	- pas dans log, inspect, ps
+	- container peut QUE lire le ficher
+	- fichier disparait quand container stop
+	
+	
+
+
+les ports : 
+
+
+	443 ou rien OU throbert.42.fr : site wp
+	8080 adminer
+	8025 mail
+
+	ftp via clien ftp

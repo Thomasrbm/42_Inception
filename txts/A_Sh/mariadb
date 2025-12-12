@@ -1,0 +1,86 @@
+#!/bin/sh
+set -e
+
+// arrete tou si y a un code erreur
+
+
+
+
+DATADIR="/var/lib/mysql"
+// la ou stock les donnee
+
+
+
+
+if [ ! -d "$DATADIR/mysql" ]; then
+    echo "Initializing MariaDB..."
+    mariadb-install-db --user=mysql --datadir="$DATADIR"
+fi
+
+// cree la db
+
+
+
+mysqld --user=mysql --datadir="$DATADIR" --skip-networking &
+pid=$!
+
+--skip-networking prend que connexion local
+// garde le pid pour le kill apres 
+
+
+sleep 5
+
+
+
+
+mysql -u root -p"$(cat $MYSQL_ROOT_PASSWORD_FILE)" <<EOF
+ALTER USER 'root'@'localhost' IDENTIFIED BY '$(cat $MYSQL_ROOT_PASSWORD_FILE)';
+CREATE DATABASE IF NOT EXISTS $MYSQL_DATABASE;
+CREATE USER IF NOT EXISTS '$MYSQL_USER'@'%' IDENTIFIED BY '$(cat $MYSQL_PASSWORD_FILE)';
+GRANT ALL PRIVILEGES ON $MYSQL_DATABASE.* TO '$MYSQL_USER'@'%';
+FLUSH PRIVILEGES;
+EOF
+
+// config db
+
+
+
+
+
+
+kill $pid
+wait $pid
+
+
+
+
+
+
+exec mysqld --user=mysql --datadir="$DATADIR"
+
+
+// relance mais pas en skipant le network
+// pour pas qu on puiss se co alors qu il est pas setup
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

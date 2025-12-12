@@ -1,0 +1,247 @@
+services:
+
+  #section qui defini tout les containers
+
+
+  mariadb:
+    pull_policy: never #empeche d essaye de pull image depuis dockerhub direct
+    # sera qui build
+
+    # section pour build  
+    build:
+      context: requirements/mariadb # de ou on build
+      dockerfile: Dockerfile  # le fichier de build
+    
+
+    container_name: mariadb
+    restart: always #si pb redemarre direct
+
+    env_file:
+      - .env 
+    
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD_FILE: ${MYSQL_PASSWORD_FILE}
+      MYSQL_ROOT_PASSWORD_FILE: ${MYSQL_ROOT_PASSWORD_FILE}
+  
+    #met le volum dans le /var du container 
+    volumes:
+      - mariadb-data:/var/lib/mysql
+
+    secrets:
+      - db_password
+      - db_root_password
+    networks:
+      - backend_net
+    
+
+
+
+
+
+
+  wordpress:
+    pull_policy: never
+    build:
+      context: requirements/wordpress
+      dockerfile: Dockerfile
+    container_name: wordpress
+    restart: always
+    env_file:
+      - .env
+    environment:
+      WORDPRESS_DB_HOST: mariadb
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
+      WORDPRESS_DB_USER: ${MYSQL_USER}
+      WORDPRESS_DB_PASSWORD_FILE: ${MYSQL_PASSWORD_FILE}
+      WP_ADMIN_USER: ${WP_ADMIN_USER}
+      WP_ADMIN_PASSWORD_FILE: ${WP_ADMIN_PASSWORD_FILE}
+      WP_ADMIN_EMAIL: ${WP_ADMIN_EMAIL}
+      WP_REDIS_HOST: redis
+    volumes:
+      - wordpress-data:/var/www/html
+
+  #  a besoin que ca soit deja demarrer avant que ce srvice soit demarrer
+    depends_on:
+      - mariadb
+      - redis
+
+
+    secrets:
+      - db_password
+      - credentials
+      - second_password
+    networks:
+      - frontend_net
+      - backend_net
+    
+
+
+
+
+
+
+  nginx:
+    pull_policy: never
+    build:
+      dockerfile: Dockerfile
+      context: requirements/nginx
+    container_name: nginx
+    restart: always
+    depends_on:
+      - wordpress
+      - adminer
+      - mailpit
+    ports:
+
+    #gere tous les port gauche 443 localhost , droite port nginx container donc du reseau docker
+      - "443:443"
+      - "8080:8080"
+      - "8025:8025"
+      - "3000:3000"
+    volumes:
+      - wordpress-data:/var/www/html
+    networks:
+      - frontend_net
+
+
+
+
+
+
+
+
+
+  redis:
+    pull_policy: never
+    build:
+      context: requirements/bonus/redis
+      dockerfile: Dockerfile
+    container_name: redis
+    restart: always
+    networks:
+      - backend_net
+
+
+
+
+
+
+  ftp:
+    pull_policy: never
+    build:
+      dockerfile: Dockerfile
+      context: requirements/bonus/ftp
+    container_name: ftp
+    restart: always
+    env_file:
+      - .env
+    environment:
+      FTP_USER: ${FTP_USER}
+      FTP_PASSWORD_FILE: /run/secrets/ftp_password
+    volumes:
+      - wordpress-data:/var/www/html
+    ports:
+      - "21:21"
+      - "21000-21010:21000-21010"
+    depends_on:
+      - wordpress
+    secrets:
+      - ftp_password
+    networks:
+      - frontend_net
+
+
+
+
+
+
+  adminer:
+    pull_policy: never
+    build:
+      dockerfile: Dockerfile
+      context: requirements/bonus/adminer
+    container_name: adminer
+    restart: always
+    depends_on:
+      - mariadb
+    networks:
+      - frontend_net
+      - backend_net
+
+
+
+
+  mailpit:
+    pull_policy: never
+    build:
+      dockerfile: Dockerfile
+      context: requirements/bonus/mailpit
+    container_name: mailpit
+    restart: always
+    networks:
+      - frontend_net
+
+
+
+
+
+  static:
+    build: 
+      context: requirements/bonus/static
+      dockerfile: Dockerfile
+    container_name: static
+    networks:
+      - frontend_net
+
+
+
+
+
+#stockage persistant peuvet etre bin mount ou non
+
+volumes:
+
+
+  mariadb-data:
+    driver_opts:
+      type: none
+      device: /home/throbert/data/mariadb
+      o: bind
+
+  wordpress-data:
+    driver_opts:
+      type: none
+      device: /home/throbert/data/wordpress
+      o: bind
+
+
+
+
+
+
+#secrets seront en lecture seul, non editable
+
+secrets:
+  db_password:
+    file: ../secrets/db_password.txt
+  db_root_password:
+    file: ../secrets/db_root_password.txt
+  credentials:
+    file: ../secrets/credentials.txt
+  second_password:
+    file: ../secrets/second_password.txt
+  ftp_password:
+    file: ../secrets/ftp_password.txt
+
+
+
+#cree des reseaux
+
+
+networks:
+  frontend_net:
+    driver: bridge
+  backend_net:
+    driver: bridge

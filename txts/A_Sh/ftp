@@ -1,0 +1,42 @@
+#!/bin/sh
+set -e
+
+
+repertoire de base
+
+FTP_HOME="/var/www/html"
+
+
+
+// veritf user et pasword 
+if [ -z "$FTP_USER" ] || [ -z "$FTP_PASSWORD_FILE" ]; then
+    echo "FTP_USER or FTP_PASSWORD_FILE not set"
+    exit 1
+fi
+
+
+
+
+FTP_PASSWORD="$(cat "$FTP_PASSWORD_FILE")" // recup le mdp
+
+
+
+if ! id "$FTP_USER" >/dev/null 2>&1; then
+    adduser -D -h "$FTP_HOME" "$FTP_USER"
+fi
+
+// de/null = bin , rend le test silencieux
+// cree l user si existe pas 
+
+
+// se le mdp
+echo "$FTP_USER:$FTP_PASSWORD" | chpasswd
+
+// donne droit au ftpuser pour wordrepss
+chown -R "$FTP_USER":"$FTP_USER" "$FTP_HOME" || true
+
+
+
+
+echo "Starting vsftpd..."
+exec /usr/sbin/vsftpd /etc/vsftpd.conf

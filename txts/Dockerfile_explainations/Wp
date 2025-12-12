@@ -1,0 +1,108 @@
+RUN apk update && apk add --no-cache ...
+
+
+=> no cache = installation supprime le cache (image plus legere)
+
+mysqli pour la db (i pour improved c est la new gen pour discuter avec la db)
+inconv = conversion encodage de char
+xml = xml format comme html mais utilie json (echange de donne)
+curl =  permet connexion avec autre server web
+dom = manipuler le DOM (document object model)
+	ca rpz l ensemble de la page web, c est normaliser sur tous
+	les navs, ca donne des fonctions (interface js html)
+		= c est l object site en cache
+
+zip = zip
+gd = manip d image, redimentionner
+mbstring = caactere UTF 8 multibytes (pour langues )
+session = gerrer les session user connexion, gere les sessions http
+apache = gestion de cache
+phar = exec archive php
+tokenizer = decomposer le php en tokens, mini unit de code pour l interpreter
+
+
+
+mariadb clie = ligne de commande mariadb
+
+
+curl pour pouvoir curl
+tar pour dezip
+mstpm  = pour ls redirection mailpit
+
+
+
+
+
+
+
+RUN mkdir -p /etc/php83/conf.d && \
+    echo "memory_limit=512M" > /etc/php83/conf.d/memory.ini
+
+
+configure la limite de memoire phph
+-p (parent) pour si le fichier existe pas encore 
+ca securise le fait de bien mettre conf.d dedans
+
+conf.d config php
+
+512 = memoir ram max pour le php script
+protege boucle infini etc.
+
+
+
+
+
+
+
+
+
+
+
+
+RUN sed -i 's|listen = 127\.0\.0\.1:9000|listen = 9000|' /etc/php83/php-fpm.d/www.conf
+ 
+sed -i (modif le fichier )
+sans -i ca met dans stdout
+s = debut subtitute
+
+| = separateur et apres = ce par quoi tu separe
+
+
+127 = que localhost => tout ports sur 0.0.0.0
+
+
+
+
+
+
+
+RUN echo "sendmail_path=\"/usr/bin/msmtp -t -i --host=mailpit --port=1025\"" > /etc/php83/conf.d/mail.ini
+
+host container mailpit etc pour que  le service marche
+
+
+
+
+RUN curl -o /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
+    && chmod +x /usr/local/bin/wp
+
+-o pour donner le nom au fichier
+
+wp core download --path=/var/www/html  (dit que deja dl)
+
+
+COPY tools/wp-setup.sh /usr/local/bin/wp-setup.sh
+RUN chmod +x /usr/local/bin/wp-setup.sh
+
+
+emplacement standard
+
+
+
+EXPOSE 9000
+
+ENTRYPOINT ["/usr/local/bin/wp-setup.sh"]
+
+
+
+

@@ -1,0 +1,109 @@
+css
+
+ /* la ou stylise les truc de base, permet aussi de definir les class pour le style*/
+body {
+
+	background: #111;
+    color: #eee;  /* couleur texte */
+    font-family: 'Arial', sans-serif;
+    display: flex;  /* met en flexbox */
+    justify-content: center;  /* horizon */
+    align-items: center; /* vertical */
+    min-height: 100vh; /* Viewport Height, pourcentage de la fenetre */
+    margin: 0;
+    text-align: center;
+}
+
+.container {
+    padding: 40px;
+    border: 1px solid #333;
+    border-radius: 10px;
+    max-width: 600px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); /* met de l ombre */
+}
+
+
+
+
+h1 {
+    color: #00bcd4; /* Cyan pour la mise en évidence */
+    margin-bottom: 20px;
+}
+
+p {
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin-bottom: 30px;
+}
+
+.github-link {
+    display: inline-block; /* prend que la place necessaire la box, ajustalbe avec texte */
+    padding: 12px 25px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #111; /* couleur du txt */
+    background-color: #eee; /* Fond clair pour contraster */
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease; /* hange couleur au over, avec 0.3 de easue = oft transi */
+}
+
+/* fonction avec la transi et donne la vrai couleur du hover */
+.github-link:hover {
+    background-color: #00bcd4;
+    color: #111;
+    box-shadow: 0 0 15px #00bcd4;
+}
+
+
+
+
+
+
+
+html 
+
+
+
+<!DOCTYPE html>
+/* declare type html 5 */
+
+
+
+
+<html lang="fr"> 
+/* specifi langue */
+
+
+<head>
+    <meta charset="UTF-8"> /* accept utf 8 accent etc */
+    <title>Inception - Thomasrbm</title>  /* titre sur onglet */
+    <link rel="stylesheet" href="style.css"> /* charge le css */
+</head>
+
+
+
+<body>
+
+
+    <div class="container">
+	/* pour faire la cadre au centre */
+
+        <h1>Projet Inception</h1>
+			/* titre taille 1  */
+        <p>Ceci est un site statique.</p> /* paragphae simple */
+
+        <a href="https://github.com/Thomasrbm" target="_blank" class="github-link">
+            Mon GitHub
+        </a> /* juste pour les liens */
+		 /* target dit ou doit charge le lien , blank = noew onglet*/ 
+		  /* pour mon css  */
+
+
+    </div>
+
+
+</body>
+
+
+</html>

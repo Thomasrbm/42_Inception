@@ -1,0 +1,108 @@
+server {
+    listen 443 ssl default_server; // par defaut va vers 443
+    server_name ${DOMAIN_NAME}; // pour avoir le domaine name en conexxion
+
+    ssl_certificate     /etc/nginx/ssl/server.crt;
+    ssl_certificate_key /etc/nginx/ssl/server.key;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    root /var/www/html; // la ou est le html
+
+
+
+    index index.php index.html; // def la page d acceuil
+
+    location / {
+        try_files $uri $uri/ /index.php?$args; // test d abord avec url donne puis sinon reidirge vers index arg cest pour les mot bizarre dans l url =311
+    }
+
+    // anti slash dit se termine par 
+    // dit a nginx de pas try d inteprete le code lui meme, demande a fastcgi de le faire
+    location ~ \.php$ {
+        include fastcgi.conf;
+        fastcgi_pass wordpress:9000; //envoit sur 9000 
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+}
+// var de config de fastcgi presente dans l env nginx
+
+
+
+
+server {
+    listen 8080 ssl;
+    server_name adminer.${DOMAIN_NAME};
+
+    ssl_certificate     /etc/nginx/ssl/server.crt;
+    ssl_certificate_key /etc/nginx/ssl/server.key;
+    
+    location / { // veut dire ==> s applique a tout
+        proxy_pass http://adminer:8080; => renvoit a nom du service container
+        proxy_set_header Host $host;
+    }
+}
+
+
+// comme on est en network  bridge. tout les reseaux et en fait
+partage et donne au bon container
+
+
+nginx: point central. 
+
+wordpress seul aussi connecte au back
+
+les dns automatique avec noms des services 
+
+
+server {
+    listen 8025 ssl;
+    server_name mail.${DOMAIN_NAME}; 
+
+    ssl_certificate     /etc/nginx/ssl/server.crt;
+    ssl_certificate_key /etc/nginx/ssl/server.key;
+    
+    location / {
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_pass http://mailpit:8025;
+        proxy_set_header Host $host;  pour que mail, puisse voir le bon host sinon marche pas
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+// ip 
+// websocket 
+
+
+
+
+server {
+    listen 3000 ssl;
+    server_name static.${DOMAIN_NAME}; 
+
+    ssl_certificate     /etc/nginx/ssl/server.crt;
+    ssl_certificate_key /etc/nginx/ssl/server.key;
+    
+    location / {
+        proxy_pass http://static:80;
+        proxy_set_header Host $host;
+    }
+}
+
+
+
+
+
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${DOMAIN_NAME} www.${DOMAIN_NAME} adminer.${DOMAIN_NAME} mail.${DOMAIN_NAME} static.${DOMAIN_NAME};
+
+    return 403; 
+}
+
+// ecoute tout les http et les refus tous 

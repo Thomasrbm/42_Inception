@@ -1,0 +1,37 @@
+---- Si vous voyez ce readme (go ne pas copier mais bon) -------
+
+Changez le path de creation des volume dans le makefile pour vous.
+
+retirez le .env et les secrets pour la mise en prod
+
+
+et add ce git ignore : 
+
+==========================================================
+
+# ---- Secrets / Credentials ----
+secrets/
+*.env
+.env*
+*.key
+*.crt
+*.pem
+*.csr
+
+# ---- Logs / Temp files ----
+*.log
+*.tmp
+
+# ---- Docker volumes ----
+**/data/
+volumes/
+docker-volumes/
+
+# ---- Certificates produced by scripts ----
+srcs/**/tools/*.key
+srcs/**/tools/*.crt
+srcs/**/tools/*.pem
+
+
+
+==========================================================

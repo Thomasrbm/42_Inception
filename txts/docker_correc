@@ -1,0 +1,378 @@
+
+
+
+.env et secret
+
+
+fichier doivent etre present que sur le serveur, jamais push ailleurs.
+on doit devoir hack le serv pour les avoir.
+
+
+le mieux avec kubernetes c est que le mdp soit pas sur la meme machine que la machine des container. 
+
+
+.env donne des var d env a l application
+
+use secret pour pouvoir mettre les mdp depuis hors des container sans les hardcoder dans les dockerfile
+
+
+
+
+
+docker inspect (id mariadb)
+docker inspect mariadb --format '{{.Config.Env}}'
+
+ "WP_SECOND_PASSWORD_FILE=/run/secrets/second_password",  => pas en clair
+
+
+
+docker exec -it mariadb sh
+la tu fais env puis tu cas le path et tu verras mais en soit t es deja dedans
+
+
+
+
+
+=========================================================
+
+SEPARATION NETWORK
+
+nginx en front car point d acces.
+
+mariadb back toutes les infos, pas sur meme reseaux que le point d acces
+
+adminer etc sont service point d acces dpmc 
+
+
+
+
+
+
+comment fonctionne network ? 
+
+de base il est implicite si jamais on ecrit pas network.
+
+
+Bridge est par defaut.
+nom du network sera nom du fichier + _default
+
+docker ls montre 3 par defaut  : 
+
+bridge = reseau par defaut quand on lance individuellement avec docker run
+
+host = reseau de la machine hote (perf mais moins isole)
+
+none = hors reseau (isolation max)
+
+
+on peut force leur use avec network_mode: ...
+
+
+
+network:
+   nom:   ---> ici que j ai nomme inception le network
+   
+   
+   
+Bridge pas comme bridge de la vm. 
+
+Sur vm ca partage l ip machine avec la VM
+sur docker : c est comme le NAT de la vm, ca cree un reseau prive
+
+donc bridge cree un reseau isole chaque container a son ip sur ce reseau
+
+
+
+si on veut mettre en bridge comme vm faut faire network_mode: host 
+et enlever networks en bas 
+
+et le network mode et specifie pour chaque service
+
+=========================================================
+
+Difference image et container
+
+image c est un peu l iso/ l os, c est le fichier avec les dependances used, la couche logiciel de l os etc ( ne change jamais)
+
+container = le docker en action, peut mettre fichier etc
+
+
+=========================================================
+
+
+docker image avec en sans compose
+
+
+l image est la meme mais la config est la orchestre par compose
+qui met en relation plusieur container d un coup
+
+
+
+=========================================================
+
+pertinence structure sujet : c est les best practices
+
+isolation des different context pour chaque container (micro service)  = resilience si pb dans un
+
+
+orga centraliser des reglement avec makefile et compose
+
+securite avec secret et .env
+
+
+
+=========================================================
+
+NGINX SSL
+
+pas de http
+
+.crt = certif
+
+docker exec -it nginx sh
+cd /etc/nginx/ssl/
+cat server.crt
+
+wp core install \
+    --url="$DOMAIN_NAME"
+
+
+le --url met https au lieu de http si on met nom de domaine
+
+
+
+
+
+
+=========================================================
+
+php-fpm
+
+php mode fastcgi
+ 
+FastCGI Process Manager
+
+
+
+c est un gateway entre nginx et le code php
+
+permet a php de comprendre les requete PHP GET etc
+
+
+c est l interface entre NGINX et le code php qui permet de 
+traduire la requete get en instruction php pour generer le html
+
+Visitor envoit requete GET
+Server nginx recoit la requete.
+NGINX capte que c est du php il peut pas decode seul
+il envoit le get au fastcgi
+php fpm recoit ca
+il demarre un worker php (processus) (ca genere le html)
+renvoti le html a nginx
+
+
+
+
+
+aller dans srcs pour faire docker compose ps
+
+
+
+docker volume inspect srcs_mariadb-data
+
+"device": "/home/throbert/data/mariadb"
+
+
+donne json info sur le docker les metatdonne
+
+
+
+pas nginx dans les dockerfile des autres pour isolation micro service
+
+
+
+
+VOLUME pour fichier du site dans /home/data
+
+chrome://vivaldi-webui/startpage?section=Speed-dials&background-color=#31363a
+
+=========================================================
+
+VOLUME pour db du site dans /home/data
+
+
+Interet de volume : 
+
+    partage entre plusieurs container
+    persistance des donnes
+
+le container doit etre leger, supp et remplace sans impact, juste
+une image
+
+Le volume gere les donne = separation de plus des taches
+
+
+docker exec -it mariadb sh
+
+
+
+mariadb -u root -p"$(cat /run/secrets/db_root_password)"
+
+SHOW DATABASES;
+information_schema = meta data surs toutes db tables etc
+mysql =  savoir qui peut rentrer dans le mariadb ci present (SHOW GRANTS;)
+performance_schema = perf du serv
+sys = pour l audit ???
+
+USE wordpress;
+
+SHOW TABLES; (la ou y a les vraies infos)
+
+SELECT ID, user_login, user_email FROM wp_users;
+
+
+SELECT option_name, option_value FROM wp_options WHERE option_name IN ('siteurl', 'home'); (prend que ligne ou non est homme ou siteurl)
+(https cote wordpress aussi)
+
+=========================================================
+
+
+Se co sur localhost  => 443 aussi  
+
+hors vm :  https://10.12.200.63/:443
+
+
+mailhost 8025  en https	
+3000 page en https
+
+http://throbert.42.fr:8080  = adminer 
+
+localhost aussi marche
+
+=========================================================
+
+
+BONUS : 
+
+
+
+=========================================================
+
+
+
+Redis cache : permet de mettre en cache les requette sql
+
+docker exec -it redis sh
+redis-cli
+KEYS *
+FLUSHALL
+
+montrer le plugin sur la page admin
+
+
+
+
+=========================================================
+
+
+ftp facilite l install de plugin
+
+
+
+
+ftp file transfer protocol
+
+ecoute port 21 => docker exec -it ftp sh 
+
+netstat -tuln => ecoute bien 21
+
+
+pointe vers le volume wp => ls -l /var/www/html  = le volume
+
+
+hors vm cd /home/throbert/data/wordpress ( peut touch et rm des fichiers)
+
+
+
+
+TRANSFERT
+
+creer un fichier dans inception
+
+ip a  
+enp0s3
+
+
+ftp -p ip 21
+
+ftpuser
+m0t2p4ssFtpppp!
+
+
+
+put test /success
+
+dans le volume y a success
+
+
+dans le compose "21000-21010:21000-21010" = ports passifs
+= cest les port use pour le vrais transfert ( le 21 juste pour authentifier)
+choisit un des port dans cette range pour le transfert
+
+
+
+
+=========================================================
+
+
+COmment fiat le site 
+
+
+=========================================================
+
+
+8025
+
+
+utilite du mail : 
+
+
+mailpit = interecpt les mails
+
+pour la phase de test des mails
+
+pas avoir 10 boite mails pour pleins de user etc
+meme pas besoin de creer les vrais boite mails de truc etc
+
+
+
+wp-admin
+
+mdp oublie
+
+admin@throbert.42.fr
+
+
+=========================================================
+
+8080
+
+
+Comment setup adminer : 
+
+
+interface graphique online pour ta db (pas orm)
+
+orm cest plutot tu code et ca interprete en requete sql.
+
+
+
+server : mariadb
+user : wp_user
+pass : WpUserPass42!
+db :  wordpress
+
+
+modif nom user et check dans mariadb
+
+

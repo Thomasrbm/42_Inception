@@ -1,0 +1,526 @@
+INCEPTION :
+
+
+
+
+Docker en 1 phrase : 
+
+
+virtualise une partie du pc mais partage le kernel contrairement 
+a vm qui refait tout l os. = plus leger.
+parfait pour deployer une app dans un envi isole et envoyer l app a d autre que ca marche sur toute machine. et dl les dependance facilement. 
+
+
+
+
+=================================================================
+
+			LE SETUP STEP BY STEP
+
+=================================================================
+
+0/ installer une vm + docker
+
+
+
+
+
+1/ docker hub
+
+-----------------------------------------------------------
+
+2/ NGINX
+
+- Ngninx le post ne donne pas de dockerfile modele.
+  	=> passer par le site 
+
+
+https://nginx.org/en/docs/beginners_guide.html 
+
+ngninx.conf eans usr/local/ngninx/conf en general. ici qu on le config
+
+
+
+
+nginx -s signal :  pour lancer
+-s quit
+-s reload
+
+
+config de base donne : server {
+    location / {
+        proxy_pass http://localhost:8080/;
+    }
+
+    location ~ \.(gif|jpg|png)$ {
+        root /data/images;
+    }
+}
+
+
+
+====> ne tourne pas 
+
+
+
+
+
+pour le TLS : https://nginx.org/en/docs/http/configuring_https_servers.html
+
+
+TLS C EST  : transport layer securitys
+
+
+
+
+
+1/ Certificat de securite par autorite (donne nom domaine, signature CA, cle publique) => site serieux
+2/ le serveur a eu un certif en envoyer un CSR au CA (echange de clef etc)
+3/ le client a son certif de base grace au browser => verifie CA du site
+
+4/ echange protocole ECC , chacun genere clef prive (nombre 256bit) et place point sur courbe ECC (clef pub)
+	l echange cree une clef partagee => connexion securisee
+
+5/ cette clef est used avec chacha ou AES pour chiffrer le dialogue
+
+
+
+
+
+
+faire son certif auto signer : 
+
+faux nom domaine
+fausse clef pub, 
+fausse meta donne date etc
+faux certif CA
+faux ip
+
+mkdir certs
+openssl req -x509 -nodes -days 365 \
+  -newkey rsa:2048 \
+  -keyout certs/www.example.com.key \
+  -out certs/www.example.com.crt \
+  -subj "/CN=localhost"
+
+
+dans le terminal
+
+
+
+
+
+
+
+
+
+
+sudo docker build --no-cache -t mynginx -f Dockerfile.ngninx . 
+sudo docker images
+sudo docker run  -p 8888:80 ID
+
+
+
+=> http://localhost:8888  affichage la page acceuil si marche
+
+
+
+
+-----------------------------------------------------------
+
+
+3/ Wordpress
+
+
+
+CMS = systeme de mangemet de contenu (pour faire des sites)  40 % des sites
+
+
+le docker image offi doit etre co avec un database a part
+
+
+choisir les image php fpm propo sur dockerhub
+c est quoi php fpm par rapport au autre wordpress sans ?
+
+
+wordpress de base latest inclut apache (serv web proxy)
+gere tout tout seul
+
+celui la non
+
+mais il a php-fpm FastCGI Process Manager
+besoin de recevoir les connexcion depuis un proxe (ngninx)
+
+
+
+
+Php c est du code back qui cree du html depuis le back.
+
+tu dis 
+<?php
+$nom = "Alice";
+echo "<h1>Bonjour $nom !</h1>";
+?>
+
+si le nom change dans le back ca actu le front
+
+
+Html seul fixe.
+Php back mais modifie le front
+JS front mais appel le back pour modif le front (modifie le DOM)
+
+
+php = facebook, wikipedia, wordpress
+
+vient d un mec qui l utilisait pour son personnal home page = php
+
+
+puis rename Hypertext Preprocessor
+
+
+
+diff avec js : https://kinsta.com/fr/blog/php-vs-javascript/
+
+
+
+
+
+=================================================================
+
+			    BONUS	
+
+=================================================================
+
+
+
+---------------------------------------------------------------
+	
+	Setup Redis
+	
+	
+Sert a gerer le cache ( les truc stocker en memoire pour pas a avoir recharger de 0 la page)
+
+
+cache pour le SQL.
+C est une base de donne en memoire persistante.
+
+
+
+de base Wp a du cache mais pas persistant
+
+redis entre les pages les objets communs sont aussi gardes
+donc page 1 40 SQL page 2  4 SQL car reste partage. 
+
+
+au retour aussi ca garde le cache
+
+pas de diff entre le user, cache du server
+
+
+
+
+=================================================================
+
+			LES INFOS TECHNIQUES
+
+=================================================================
+
+
+
+
+
+
+-------------------------------------
+
+what i know ;
+
+
+Envi separe type vm mais pour application.
+
+- Permet de dev sur toutes les machines diff (car envi a part)
+- Permet installer des images (mini fichier d app ngninx etc.) pour l app.
+- permet deployer tous les services d un coup (centralise avec une cmd)
+- permet aussi d avoir les package manager en image
+
+
+- replicable 
+
+
+Boite fr a la base.
+
+
+-------------------------------------
+
+
+
+
+AVANT DOCKER :
+
+on devait tout install sur notre propre machine  + tous les autre de la team aussi
+
+- pbs de compat selon les machines
+- long sa mere
+
+
+==> docker simplifie tout
+
+on devait aussi avoir la team qui setup l application sur le serveur
+
+- configuration longues sur le serveur + erreurs de communications
+
+==> la team passe par docker et ses cmds
+
+
+
+-------------------------------------
+
+
+
+Comment ca marche ?
+
+
+
+
+Un OS =  Le niveau applicatif (les logiciels) + le kernel (code qui parle au hardware)
+
+
+
+Docker = n emule que le niveau applicatif et use le kernel du pc (la ou la vm a aussi son kernel)
+
+===> tres leger ducoup (mb)
+
+===> ducoup que du linux sur docker (souvent alpine ou debian)
+===> si on veut avoir sur windows/mac = docker desktop
+
+-------------------------------------
+
+
+Docker container =  le fait de lancer une image sur un pc
+
+Docker image = un fichier avec : l app, les dependenace, l os, les fichiers needed etc.
+
+
+-------------------------------------
+
+docker registies : endroit ou on stock les images.
+
+Depuis les sites des apps Postgres, Mongodb etc propose leur docker image
+
+Mais aussi Docker Hub
+
+
+
+
+
+
+-------------------------------------
+
+on peut avoir des images latest
+
+ou choisir image version precise
+
+
+
+
+
+-------------------------------------
+
+On peut pull les images avec docker pull ngninx
+
+MAIS =>
+
+
+
+-------------------------------------
+
+
+Dockerfile => creer image de TON app
+
+
+Fichier d installe des images (mini script d installation)
+
+FROM (pour img de base) base image
+
+
+
+
+
+
+-------------------------------------
+
+Docker compose
+
+
+Makefile pour docker
+
+
+
+spe :
+
+develop et watch https://www.youtube.com/watch?v=PUpgGtq0xSw&t=8s 8m 
+
+mettre maj auto l app SANS VOLUME
+
+
+
+-------------------------------------
+
+Volumes
+
+fichier partages et non supprime
+
+-------------------------------------
+
+Bind mounted
+
+Fichier partager en direct live avec ta machine
+
+(dangereux en phase de release car faille acces au server)
+
+
+
+
+
+-------------------------------------
+
+Applications graphiques pour docker : xquartz 
+
+
+permet de jouer a des jeux video dans docker : https://www.youtube.com/watch?v=PUpgGtq0xSw&t=8s
+
+1m 15
+
+-------------------------------------
+
+
+Dockur : 
+
+
+Avoir windows / macos sans vm dans ton navigateur
+
+
+
+-------------------------------------
+
+
+
+
+Port binding (exposing port)
+
+(host):(container)
+
+On peut le faire dans le compose mais aussi avec :
+
+
+-p 8080:80
+
+standard d use le meme port que donner par l image
+
+laisse le choix au cas ou port deja use ou volonte d orga perso
+
+-------------------------------------
+
+
+
+
+
+Les inconvenients :
+
+
+- moins sure que les vm
+- si besoin de vm pour docker => plus couteur que juste vm
+
+
+
+
+
+
+
+-------------------------------------
+
+
+
+souvent associe a Kubernetes
+
+
+Mais diff :  cest un deployeur massif de container (et pas que venant de docker)
+
+c est pas pour creer
+
+
+par google
+
+
+
+
+
+-------------------------------------
+
+
+commandes :
+
+docker run : recreer un container a partir de l image
+
+--name : donner un nom precis au container
+
+
+docker ps -a : liste aussi les ancien container stopped
+
+docker compose up --build : pour forcer le rebuild
+
+docker compose up : pour juste lancer ou build si jamais build
+
+docker ps : la liste des container running
+
+docker images : ls les images
+
+docker system prune -a  : supprime tous
+
+docker exec -it transcendance-back sh  : aller dans l instance docker
+
+docker run -d --name nom_du_conteneur image_docker : run en detached
+
+
+docker volume ls -q | xargs docker volume rm = supprimes les volumes
+
+
+nano ~/.docker/config.json
+
+"suppr si truc entre {}"
+
+
+
+
+
+docker scout : pour voir les faille nouvelle sur ton image
+
+docker recommandation : te donne toutes les bonnes choses a savoir pour avoir la meilleur image
+
+
+
+
+commands pro :
+
+
+docker debug : pour avoir vim / nano, entrypoint etc direct dans le container meme si bash et pas la
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

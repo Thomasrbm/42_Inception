@@ -1,0 +1,24 @@
+
+
+
+
+
+RUN apk update && apk add --no-cache mariadb mariadb-client
+
+
+
+supprime conf de base in case =>
+	RUN rm -f /etc/my.cnf.d/*
+
+
+// copy les ficher machine pour les exec dans le container
+COPY conf/50-server.cnf /etc/my.cnf.d/50-server.cnf
+COPY tools/mariadb-init.sh /usr/local/bin/mariadb-init.sh
+RUN chmod +x /usr/local/bin/mariadb-init.sh
+
+// cree fichier au le sh va s exec
+RUN mkdir -p /run/mysqld /var/lib/mysql && \
+    chown -R mysql:mysql /run/mysqld /var/lib/mysql
+
+ENTRYPOINT ["/usr/local/bin/mariadb-init.sh"]
+CMD ["mysqld", "--user=mysql"]
